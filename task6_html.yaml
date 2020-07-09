@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: html_os
+  labels:
+    app: html_os
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: html_os
+    
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: html-pv-claim
+  labels:
+    app: html_pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: html_os
+  labels:
+    app: html_os
+spec:
+  selector:
+    matchLabels:
+      app: html_os
+      
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: html_os
+    spec:
+      containers:
+      - image: vedanshshrivastava/html_os_1:v1
+        name: html_os
+        
+        ports:
+        - containerPort: 80
+          name: html_os
+        volumeMounts:
+        - name: html-persistent-storage
+          mountPath: /var/www/html
+      volumes:
+      - name: html-persistent-storage
+        persistentVolumeClaim:
+          claimName: html-pv-claim
